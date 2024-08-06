@@ -90,14 +90,8 @@ object AdapterProcessor {
     def active(state: SortedMap[LocalDate, Map[String, BigDecimal]],
                source: SourceState
               ): Behavior[ProcessorMessage] = Behaviors.receiveMessage[ProcessorMessage] {
-      case rq@ConvertAmount(date, amount, from, to, replyTo) if state.keys.exists(_.isEqual(date)) && state(date).keys.exists(_ == s"from$to") =>
+      case rq@ConvertAmount(date, _, from, to, replyTo) if state.keys.exists(_.isEqual(date)) && state(date).keys.exists(_ == s"$from$to") =>
         converter(state)(rq, replyTo)
-        /*val rate = state(date)(s"from$to")
-        if (from == "USD") {
-          replyTo ! AmountConverted(date, amount.bigDecimal.multiply(rate.bigDecimal, mathCtx), from, to)
-        } else {
-          replyTo ! AmountConverted(date, amount.bigDecimal.divide(rate.bigDecimal, mathCtx), from, to)
-        }*/
         Behaviors.same
 
       case rq@ConvertAmount(date, _, _, _, replyTo) if !state.keys.exists(_.isEqual(date)) && rq.isLive =>
