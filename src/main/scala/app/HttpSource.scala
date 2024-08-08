@@ -52,6 +52,13 @@ object HttpSource {
   private val makeHistoryRatesRequest: String => HttpRequest = date => Get(s"$historyUrl&date=$date")
   implicit val ec: ExecutionContext = ExecutionContext.fromExecutor(Executors.newSingleThreadExecutor())
 
+  def runLiveRatesRequest(kind: Kind)(implicit system: ActorSystem): Future[LiveRates] = {
+    kind match {
+      case Primary => runLiveRatesRequestPrimary()
+      case Secondary => runLiveRatesRequestSecondary()
+    }
+  }
+
   def runLiveRatesRequestPrimary()(implicit system: ActorSystem): Future[LiveRates] = {
     import JsoniterScalaSupport._
     import LiveRates._
@@ -65,6 +72,13 @@ object HttpSource {
   }
 
   def runLiveRatesRequestSecondary()(implicit system: ActorSystem): Future[LiveRates] = runLiveRatesRequestPrimary()
+
+  def runHistoricalRates(date: LocalDate, kind: Kind)(implicit system: ActorSystem): Future[HistoricalRates] = {
+    kind match {
+      case Primary => runHistoricalRatesPrimary(date)
+      case Secondary => runHistoricalRatesSecondary(date)
+    }
+  }
 
   def runHistoricalRatesPrimary(date: LocalDate)(implicit system: ActorSystem): Future[HistoricalRates] = {
     import HistoricalRates._
